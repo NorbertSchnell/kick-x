@@ -104,12 +104,11 @@ function onDeviceMotion(e) {
     clearTimeout(dataStreamTimeout);
   }
 
-  if (filterCoeff === 0) {
+  if (filterCoeff === null) {
     filterCoeff = Math.exp(-2.0 * Math.PI * e.interval / 10);
   }
 
   const acc = scaleAcc * e.acceleration.x;
-
   filteredAcc = filterCoeff * filteredAcc + (1 - filterCoeff) * acc;
 
   setBiBar(accBar, filteredAcc / 20);
