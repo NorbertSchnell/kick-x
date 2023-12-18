@@ -48,7 +48,7 @@ startScreenDiv.addEventListener("click", () => {
  * 
  */
 const AudioContext = window.AudioContext || window.webkitAudioContext;
-let audioContext = null;
+const audioContext = new AudioContext();
 const sounds = ['left.mp3', 'rigth.mp3'];
 const audioBuffers = [];
 
