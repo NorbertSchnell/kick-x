@@ -33,7 +33,7 @@ setOverlayText("touch screen to start");
 startScreenDiv.addEventListener("click", () => {
   setOverlayText("checking for motion sensors...");
 
-  Promise.all([requestWebAudio, requestDeviceMotion])
+  Promise.all([requestWebAudio(), requestDeviceMotion()])
     .then(() => {
       startScreenDiv.style.display = "none";
     })
