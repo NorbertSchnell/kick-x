@@ -1,6 +1,11 @@
 const accBar = document.querySelector("#acc .bar");
-const rotBar = document.querySelector("#rot .bar");
+const accMinBar = document.querySelector("#acc-min .bar");
+const accMaxBar = document.querySelector("#acc-max .bar");
 const accNumber = document.querySelector("#acc .number");
+const accMinNumber = document.querySelector("#acc-min .number");
+const accMaxNumber = document.querySelector("#acc-max .number");
+
+const rotBar = document.querySelector("#rot .bar");
 const rotNumber = document.querySelector("#rot .number");
 
 /********************************************************************
@@ -98,6 +103,9 @@ function requestDeviceMotion() {
 let filterCoeff = null;
 let filteredAcc = 0;
 
+let accMin = Infinity;
+let accMax = -Infinity;
+
 function onDeviceMotion(e) {
   if (dataStreamTimeout !== null && dataStreamResolve !== null) {
     dataStreamResolve();
@@ -111,8 +119,15 @@ function onDeviceMotion(e) {
   const acc = scaleAcc * e.acceleration.x;
   filteredAcc = filterCoeff * filteredAcc + (1 - filterCoeff) * acc;
 
+  accMin = Math.min(accMin, filteredAcc);
+  accMax = Math.max(accMax, filteredAcc);
+
   setBiBar(accBar, filteredAcc / 20);
   setNumber(accNumber, filteredAcc);
+  setBiBar(accMinBar, accMin / 20);
+  setNumber(accMinNumber, accMin);
+  setBiBar(accMaxBar, accMax / 20);
+  setNumber(accMaxNumber, accMax);
 
   const rot = e.rotationRate.gamma;
   setBiBar(rotBar, rot / 360);
