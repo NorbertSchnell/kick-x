@@ -105,7 +105,7 @@ function onDeviceMotion(e) {
   }
 
   if (filterCoeff === null) {
-    filterCoeff = Math.exp(-2.0 * Math.PI * e.interval / 10);
+    filterCoeff = Math.exp(-2.0 * Math.PI * e.interval / 0.2);
   }
 
   const acc = scaleAcc * e.acceleration.x;
