@@ -52,6 +52,18 @@ const audioContext = new AudioContext();
 const sounds = ['left.mp3', 'rigth.mp3'];
 const audioBuffers = [];
 
+for (let i = 0; i < sounds.length; i++) {
+  const request = new XMLHttpRequest();
+  request.responseType = 'arraybuffer';
+  request.open('GET', 'sounds/' + sounds[i]);
+  request.addEventListener('load', () => {
+    const ac = new AudioContext();
+    ac.decodeAudioData(request.response, (buffer) => audioBuffers[i] = buffer);
+  });
+
+  request.send();
+}
+
 function requestWebAudio() {
   return new Promise((resolve, reject) => {
     if (AudioContext) {
@@ -63,21 +75,6 @@ function requestWebAudio() {
       reject("web audio not available");
     }
   });
-}
-
-// load audio buffers
-function loadBuffers() {
-  for (let i = 0; i < sounds.length; i++) {
-    const request = new XMLHttpRequest();
-    request.responseType = 'arraybuffer';
-    request.open('GET', 'sounds/' + sounds[i]);
-    request.addEventListener('load', () => {
-      const ac = new AudioContext();
-      ac.decodeAudioData(request.response, (buffer) => audioBuffers[i] = buffer);
-    });
-
-    request.send();
-  }
 }
 
 function playSound(index) {
