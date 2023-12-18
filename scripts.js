@@ -33,7 +33,7 @@ setOverlayText("touch screen to start");
 startScreenDiv.addEventListener("click", () => {
   setOverlayText("checking for motion sensors...");
 
-  requestDeviceMotion()
+  Promise.all([requestWebAudio, requestDeviceMotion])
     .then(() => {
       startScreenDiv.style.display = "none";
     })
@@ -41,6 +41,52 @@ startScreenDiv.addEventListener("click", () => {
       setOverlayError(error);
     });
 });
+
+/********************************************************************
+ * 
+ *  web audio
+ * 
+ */
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioContext = null;
+const sounds = ['left.mp3', 'rigth.mp3'];
+const audioBuffers = [];
+
+function requestWebAudio() {
+  return new Promise((resolve, reject) => {
+    if (AudioContext) {
+      audioContext.resume()
+        .then(() => resolve())
+        .catch(() => reject());
+    }
+    else {
+      reject("web audio not available");
+    }
+  });
+}
+
+// load audio buffers
+function loadBuffers() {
+  for (let i = 0; i < sounds.length; i++) {
+    const request = new XMLHttpRequest();
+    request.responseType = 'arraybuffer';
+    request.open('GET', 'sounds/' + sounds[i]);
+    request.addEventListener('load', () => {
+      const ac = new AudioContext();
+      ac.decodeAudioData(request.response, (buffer) => audioBuffers[i] = buffer);
+    });
+
+    request.send();
+  }
+}
+
+function playSound(index) {
+  // create audio context on first button and keep it
+  const source = audioContext.createBufferSource();
+  source.connect(audioContext.destination);
+  source.buffer = audioBuffers[index];
+  source.start(audioContext.currentTime);
+}
 
 /********************************************************************
  * 
@@ -118,6 +164,12 @@ function onDeviceMotion(e) {
 
   const acc = scaleAcc * e.acceleration.x;
   filteredAcc = filterCoeff * filteredAcc + (1 - filterCoeff) * acc;
+
+  if (filteredAcc > 2) {
+    playSound(0);
+  } else if (filteredAcc < -2) {
+    playSound(1);
+  }
 
   accMin = Math.min(accMin, filteredAcc);
   accMax = Math.max(accMax, filteredAcc);
