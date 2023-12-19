@@ -51,8 +51,6 @@ const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioContext = new AudioContext();
 const sounds = ['left.mp3', 'right.mp3'];
 const audioBuffers = [];
-const kickLeft = false;
-const kickRight = false;
 
 for (let i = 0; i < sounds.length; i++) {
   const request = new XMLHttpRequest();
@@ -147,9 +145,10 @@ function requestDeviceMotion() {
 
 let filterCoeff = null;
 let filteredAcc = 0;
-
 let accMin = Infinity;
 let accMax = -Infinity;
+let kickLeft = false;
+let kickRight = false;
 
 function onDeviceMotion(e) {
   if (dataStreamTimeout !== null && dataStreamResolve !== null) {
