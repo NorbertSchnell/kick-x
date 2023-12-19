@@ -49,8 +49,10 @@ startScreenDiv.addEventListener("click", () => {
  */
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioContext = new AudioContext();
-const sounds = ['left.mp3', 'rigth.mp3'];
+const sounds = ['left.mp3', 'right.mp3'];
 const audioBuffers = [];
+const kickLeft = false;
+const kickRight = false;
 
 for (let i = 0; i < sounds.length; i++) {
   const request = new XMLHttpRequest();
@@ -162,12 +164,18 @@ function onDeviceMotion(e) {
   const acc = scaleAcc * e.acceleration.x;
   filteredAcc = filterCoeff * filteredAcc + (1 - filterCoeff) * acc;
 
-  if (filteredAcc > 2) {
-    playSound(0);
-  } else if (filteredAcc < -2) {
+  if (filteredAcc > 2 && !kickLeft) {
     playSound(1);
+    kickLeft = true;
+  } else if (filteredAcc < -2 && !kickRight) {
+    playSound(0);
+    kickRight = true;
+  } else if (filteredAcc < 0 && kickLeft) {
+    kickLeft = false;
+  } else if (filteredAcc > 0 && kickRight) {
+    kickRight = false;
   }
-
+  
   accMin = Math.min(accMin, filteredAcc);
   accMax = Math.max(accMax, filteredAcc);
 
