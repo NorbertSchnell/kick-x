@@ -164,17 +164,17 @@ function onDeviceMotion(e) {
   const acc = scaleAcc * e.acceleration.x;
   filteredAcc = filterCoeff * filteredAcc + (1 - filterCoeff) * acc;
 
-  if (filteredAcc > 2 && !kickLeft) {
-    playSound(1);
-    kickLeft = true;
-  } else if (filteredAcc < -2 && !kickRight) {
+  if (filteredAcc < -2 && !kickLeft) {
     playSound(0);
+    kickLeft = true;
+  } else if (filteredAcc > 2 && !kickRight) {
+    playSound(1);
     kickRight = true;
   }
   
-  if (filteredAcc < 0 && kickLeft) {
+  if (filteredAcc > 0 && kickLeft) {
     kickLeft = false;
-  } else if (filteredAcc > 0 && kickRight) {
+  } else if (filteredAcc < 0 && kickRight) {
     kickRight = false;
   }
   
