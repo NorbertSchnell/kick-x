@@ -170,7 +170,9 @@ function onDeviceMotion(e) {
   } else if (filteredAcc < -2 && !kickRight) {
     playSound(0);
     kickRight = true;
-  } else if (filteredAcc < 0 && kickLeft) {
+  }
+  
+  if (filteredAcc < 0 && kickLeft) {
     kickLeft = false;
   } else if (filteredAcc > 0 && kickRight) {
     kickRight = false;
