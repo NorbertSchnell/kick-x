@@ -155,10 +155,6 @@ let lastDiffAcc = null;
 let leftEdge = 0;
 let rightEdge = 0;
 let defaultThreshold = 2;
-let accMin = Infinity;
-let accMax = -Infinity;
-let kickLeft = false;
-let kickRight = false;
 
 function onDeviceMotion(e) {
   if (dataStreamTimeout !== null && dataStreamResolve !== null) {
@@ -198,15 +194,12 @@ function onDeviceMotion(e) {
     }
   }
 
-  accMin = Math.min(accMin, currentFilteredAcc);
-  accMax = Math.max(accMax, currentFilteredAcc);
-
   setBiBar(accBar, currentFilteredAcc / 20);
   setNumber(accNumber, currentFilteredAcc);
-  setBiBar(accMinBar, accMin / 20);
-  setNumber(accMinNumber, accMin);
-  setBiBar(accMaxBar, accMax / 20);
-  setNumber(accMaxNumber, accMax);
+  setBiBar(accMinBar, leftEdge / 20);
+  setNumber(accMinNumber, leftEdge);
+  setBiBar(accMaxBar, rightEdge / 20);
+  setNumber(accMaxNumber, rightEdge);
 
   lastFilteredAcc = currentFilteredAcc;
   lastDiffAcc = currentDiffAcc;
