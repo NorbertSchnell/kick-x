@@ -176,7 +176,7 @@ function onDeviceMotion(e) {
     lastDiffAcc = currentDiffAcc;
   }
 
-  if (currentFilteredAcc < defaultThreshold && lastDiffAcc < 0 && currentDiffAcc >= 0) {
+  if (currentFilteredAcc < -defaultThreshold && lastDiffAcc < 0 && currentDiffAcc >= 0) {
     // negative/left kick
     leftEdge = currentFilteredAcc;
 
@@ -204,9 +204,9 @@ function onDeviceMotion(e) {
   lastFilteredAcc = currentFilteredAcc;
   lastDiffAcc = currentDiffAcc;
 
-  const rot = e.rotationRate.gamma;
-  setBiBar(rotBar, rot / 360);
-  setNumber(rotNumber, rot);
+  // const rot = e.rotationRate.gamma;
+  // setBiBar(rotBar, rot / 360);
+  // setNumber(rotNumber, rot);
 }
 
 function onDeviceOrientation(e) {
