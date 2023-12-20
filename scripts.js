@@ -164,7 +164,7 @@ function onDeviceMotion(e) {
     leftPeak = currentFilteredAcc;
 
     // trigger on left kick but not on right stop
-    const threshold = Math.min(-defaultThreshold, -0.5 * rightPeak);
+    const threshold = Math.min(-defaultThreshold, -0.666 * rightPeak);
     if (currentFilteredAcc < threshold) {
       playSound(0);
     }
@@ -173,7 +173,7 @@ function onDeviceMotion(e) {
     rightPeak = currentFilteredAcc;
 
     // trigger on right kick but not on left stop
-    const threshold = Math.max(defaultThreshold, -0.5 * leftPeak);
+    const threshold = Math.max(defaultThreshold, -0.666 * leftPeak);
     if (currentFilteredAcc >= threshold) {
       playSound(1);
     }
