@@ -152,8 +152,8 @@ function requestDeviceMotion() {
 let filterCoeff = null;
 let lastFilteredAcc = 0;
 let lastDiffAcc = null;
-let leftEdge = 0;
-let rightEdge = 0;
+let leftPeak = 0;
+let rightPeak = 0;
 let defaultThreshold = 1.5;
 
 function onDeviceMotion(e) {
@@ -178,17 +178,17 @@ function onDeviceMotion(e) {
 
   if (currentFilteredAcc < -defaultThreshold && lastDiffAcc < 0 && currentDiffAcc >= 0) {
     // negative/left kick
-    leftEdge = currentFilteredAcc;
+    leftPeak = currentFilteredAcc;
 
-    const threshold = Math.min(-defaultThreshold, -0.5 * rightEdge);
+    const threshold = Math.min(-defaultThreshold, -0.5 * rightPeak);
     if (currentFilteredAcc < threshold) {
       playSound(0);
     }
   } else if (currentFilteredAcc >= defaultThreshold && lastDiffAcc >= 0 && currentDiffAcc < 0) {
     // positive/right kick
-    rightEdge = currentFilteredAcc;
+    rightPeak = currentFilteredAcc;
 
-    const threshold = Math.max(defaultThreshold, -0.5 * leftEdge);
+    const threshold = Math.max(defaultThreshold, -0.5 * leftPeak);
     if (currentFilteredAcc >= threshold) {
       playSound(1);
     }
@@ -196,17 +196,13 @@ function onDeviceMotion(e) {
 
   setBiBar(accBar, currentFilteredAcc / 20);
   setNumber(accNumber, currentFilteredAcc);
-  setBiBar(accMinBar, leftEdge / 20);
-  setNumber(accMinNumber, leftEdge);
-  setBiBar(accMaxBar, rightEdge / 20);
-  setNumber(accMaxNumber, rightEdge);
+  setBiBar(accMinBar, leftPeak / 20);
+  setNumber(accMinNumber, leftPeak);
+  setBiBar(accMaxBar, rightPeak / 20);
+  setNumber(accMaxNumber, rightPeak);
 
   lastFilteredAcc = currentFilteredAcc;
   lastDiffAcc = currentDiffAcc;
-
-  // const rot = e.rotationRate.gamma;
-  // setBiBar(rotBar, rot / 360);
-  // setNumber(rotNumber, rot);
 }
 
 function onDeviceOrientation(e) {
