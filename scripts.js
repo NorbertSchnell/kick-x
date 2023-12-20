@@ -178,7 +178,7 @@ function onDeviceMotion(e) {
 
   if (currentFilteredAcc < 0 && lastDiffAcc < 0 && currentDiffAcc >= 0) {
     // negative/left kick
-    leftEdge = filterCoeff;
+    leftEdge = currentFilteredAcc;
 
     const threshold = Math.min(-defaultThreshold, -0.5 * rightEdge);
     if (currentFilteredAcc < threshold) {
@@ -186,7 +186,7 @@ function onDeviceMotion(e) {
     }
   } else if (currentFilteredAcc >= 0 && lastDiffAcc >= 0 && currentDiffAcc < 0) {
     // positive/right kick
-    rightEdge = filterCoeff;
+    rightEdge = currentFilteredAcc;
 
     const threshold = Math.max(defaultThreshold, -0.5 * leftEdge);
     if (currentFilteredAcc >= threshold) {
