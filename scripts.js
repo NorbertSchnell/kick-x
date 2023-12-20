@@ -132,12 +132,12 @@ function requestDeviceMotion() {
   });
 }
 
+const defaultThreshold = 1.5;
 let filterCoeff = null;
 let lastFilteredAcc = 0;
 let lastDiffAcc = null;
 let leftPeak = 0;
 let rightPeak = 0;
-let defaultThreshold = 1.5;
 
 function onDeviceMotion(e) {
   if (dataStreamTimeout !== null && dataStreamResolve !== null) {
