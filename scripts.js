@@ -1,12 +1,10 @@
+// display elements
 const accBar = document.querySelector("#acc .bar");
 const accMinBar = document.querySelector("#acc-min .bar");
 const accMaxBar = document.querySelector("#acc-max .bar");
 const accNumber = document.querySelector("#acc .number");
 const accMinNumber = document.querySelector("#acc-min .number");
 const accMaxNumber = document.querySelector("#acc-max .number");
-
-const rotBar = document.querySelector("#rot .bar");
-const rotNumber = document.querySelector("#rot .number");
 
 /********************************************************************
  * 
@@ -16,20 +14,11 @@ const rotNumber = document.querySelector("#rot .number");
 const startScreenDiv = document.getElementById("start-screen");
 const startScreenTextDiv = startScreenDiv.querySelector("p");
 
-function setOverlayText(text) {
-  startScreenTextDiv.classList.remove("error");
-  startScreenTextDiv.innerHTML = text;
-}
-
-function setOverlayError(text) {
-  startScreenTextDiv.classList.add("error");
-  startScreenTextDiv.innerHTML = text;
-}
-
-// start
+// open start screen
 startScreenDiv.style.display = "block";
 setOverlayText("touch screen to start");
 
+// start after touch
 startScreenDiv.addEventListener("click", () => {
   setOverlayText("checking for motion sensors...");
 
@@ -37,15 +26,21 @@ startScreenDiv.addEventListener("click", () => {
   const deviceMotionPromise = requestDeviceMotion();
 
   Promise.all([audioPromise, deviceMotionPromise])
-    .then(() => {
-      // close start screen if everything is ok
-      startScreenDiv.style.display = "none";
-    })
-    .catch((error) => {
-      // display error
-      setOverlayError(error);
-    });
+    .then(() => startScreenDiv.style.display = "none") // close start screen (everything is ok)
+    .catch((error) => setOverlayError(error)); // display error
 });
+
+// display text on start screen
+function setOverlayText(text) {
+  startScreenTextDiv.classList.remove("error");
+  startScreenTextDiv.innerHTML = text;
+}
+
+// display error message on start screen
+function setOverlayError(text) {
+  startScreenTextDiv.classList.add("error");
+  startScreenTextDiv.innerHTML = text;
+}
 
 /********************************************************************
  * 
@@ -127,21 +122,9 @@ function requestDeviceMotion() {
             }
           })
           .catch(console.error);
-
-        // DeviceOrientationEvent.requestPermission()
-        //   .then((response) => {
-        //     if (response == "granted") {
-        //       window.addEventListener("deviceorientation", onDeviceOrientation);
-        //       resolve();
-        //     } else {
-        //       reject("no permission for device orientation");
-        //     }
-        //   })
-        //   .catch(console.error);
       } else {
         // no permission needed on non-iOS devices
         window.addEventListener("devicemotion", onDeviceMotion);
-        // window.addEventListener("deviceorientation", onDeviceOrientation);
       }
     } else {
       reject("device motion/orientation not available");
@@ -177,23 +160,26 @@ function onDeviceMotion(e) {
   }
 
   if (currentFilteredAcc < -defaultThreshold && lastDiffAcc < 0 && currentDiffAcc >= 0) {
-    // negative/left kick
+    // register left kick (negative acc minimum)
     leftPeak = currentFilteredAcc;
 
+    // trigger on left kick but not on right stop
     const threshold = Math.min(-defaultThreshold, -0.5 * rightPeak);
     if (currentFilteredAcc < threshold) {
       playSound(0);
     }
   } else if (currentFilteredAcc >= defaultThreshold && lastDiffAcc >= 0 && currentDiffAcc < 0) {
-    // positive/right kick
+    // register right kick (positive acc maximum)
     rightPeak = currentFilteredAcc;
 
+    // trigger on right kick but not on left stop
     const threshold = Math.max(defaultThreshold, -0.5 * leftPeak);
     if (currentFilteredAcc >= threshold) {
       playSound(1);
     }
   }
 
+  // display current acceleration and left/right peaks
   setBiBar(accBar, currentFilteredAcc / 20);
   setNumber(accNumber, currentFilteredAcc);
   setBiBar(accMinBar, leftPeak / 20);
@@ -201,17 +187,9 @@ function onDeviceMotion(e) {
   setBiBar(accMaxBar, rightPeak / 20);
   setNumber(accMaxNumber, rightPeak);
 
+  // store current filtered acc and diff
   lastFilteredAcc = currentFilteredAcc;
   lastDiffAcc = currentDiffAcc;
-}
-
-function onDeviceOrientation(e) {
-  if (dataStreamTimeout !== null && dataStreamResolve !== null) {
-    dataStreamResolve();
-    clearTimeout(dataStreamTimeout);
-  }
-
-  // e.alpha, e.beta, e.gamma
 }
 
 /********************************************************
