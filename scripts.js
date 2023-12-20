@@ -154,7 +154,7 @@ let lastFilteredAcc = 0;
 let lastDiffAcc = null;
 let leftEdge = 0;
 let rightEdge = 0;
-let defaultThreshold = 1;
+let defaultThreshold = 1.5;
 
 function onDeviceMotion(e) {
   if (dataStreamTimeout !== null && dataStreamResolve !== null) {
