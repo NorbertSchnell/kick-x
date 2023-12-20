@@ -176,7 +176,7 @@ function onDeviceMotion(e) {
     lastDiffAcc = currentDiffAcc;
   }
 
-  if (currentFilteredAcc < 0 && lastDiffAcc < 0 && currentDiffAcc >= 0) {
+  if (currentFilteredAcc < defaultThreshold && lastDiffAcc < 0 && currentDiffAcc >= 0) {
     // negative/left kick
     leftEdge = currentFilteredAcc;
 
@@ -184,7 +184,7 @@ function onDeviceMotion(e) {
     if (currentFilteredAcc < threshold) {
       playSound(0);
     }
-  } else if (currentFilteredAcc >= 0 && lastDiffAcc >= 0 && currentDiffAcc < 0) {
+  } else if (currentFilteredAcc >= defaultThreshold && lastDiffAcc >= 0 && currentDiffAcc < 0) {
     // positive/right kick
     rightEdge = currentFilteredAcc;
 
