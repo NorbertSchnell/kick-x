@@ -33,11 +33,16 @@ setOverlayText("touch screen to start");
 startScreenDiv.addEventListener("click", () => {
   setOverlayText("checking for motion sensors...");
 
-  Promise.all([requestWebAudio(), requestDeviceMotion()])
+  const audioPromise = requestWebAudio();
+  const deviceMotionPromise = requestDeviceMotion();
+
+  Promise.all([audioPromise, deviceMotionPromise])
     .then(() => {
+      // close start screen if everything is ok
       startScreenDiv.style.display = "none";
     })
     .catch((error) => {
+      // display error
       setOverlayError(error);
     });
 });
@@ -49,13 +54,14 @@ startScreenDiv.addEventListener("click", () => {
  */
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioContext = new AudioContext();
-const sounds = ['left.mp3', 'right.mp3'];
+const soundFiles = ['left.mp3', 'right.mp3'];
 const audioBuffers = [];
 
-for (let i = 0; i < sounds.length; i++) {
+// load soundfiles into audio buffers
+for (let i = 0; i < soundFiles.length; i++) {
   const request = new XMLHttpRequest();
   request.responseType = 'arraybuffer';
-  request.open('GET', 'sounds/' + sounds[i]);
+  request.open('GET', 'sounds/' + soundFiles[i]);
   request.addEventListener('load', () => {
     const ac = new AudioContext();
     ac.decodeAudioData(request.response, (buffer) => audioBuffers[i] = buffer);
@@ -64,6 +70,7 @@ for (let i = 0; i < sounds.length; i++) {
   request.send();
 }
 
+// get promise for web audio check and start
 function requestWebAudio() {
   return new Promise((resolve, reject) => {
     if (AudioContext) {
@@ -77,8 +84,8 @@ function requestWebAudio() {
   });
 }
 
+// play sound by audio buffer index
 function playSound(index) {
-  // create audio context on first button and keep it
   const source = audioContext.createBufferSource();
   source.connect(audioContext.destination);
   source.buffer = audioBuffers[index];
@@ -94,11 +101,12 @@ let dataStreamTimeout = null;
 let dataStreamResolve = null;
 let scaleAcc = 1; // scale factor to re-invert iOS acceleration
 
+// get promise for device motion check and start
 function requestDeviceMotion() {
   return new Promise((resolve, reject) => {
     dataStreamResolve = resolve;
 
-    // set timeout in case that the API response, but no data is sent
+    // set timeout in case that the API is ok, but no data is sent
     dataStreamTimeout = setTimeout(() => {
       dataStreamTimeout = null;
       reject("no device motion/orientation data streams");
@@ -113,9 +121,7 @@ function requestDeviceMotion() {
               // got permission
               window.addEventListener("devicemotion", onDeviceMotion);
               resolve();
-
-              // re-invert inverted iOS acceleration values
-              scaleAcc = -1; // ???
+              scaleAcc = -1; // re-invert inverted iOS acceleration values
             } else {
               reject("no permission for device motion");
             }
@@ -144,7 +150,11 @@ function requestDeviceMotion() {
 }
 
 let filterCoeff = null;
-let filteredAcc = 0;
+let lastFilteredAcc = 0;
+let lastDiffAcc = null;
+let leftEdge = 0;
+let rightEdge = 0;
+let defaultThreshold = 2;
 let accMin = Infinity;
 let accMax = -Infinity;
 let kickLeft = false;
@@ -156,36 +166,50 @@ function onDeviceMotion(e) {
     clearTimeout(dataStreamTimeout);
   }
 
+  const acc = scaleAcc * e.acceleration.x;
+  const currentFilteredAcc = filterCoeff * lastFilteredAcc + (1 - filterCoeff) * acc;
+  const currentDiffAcc = currentFilteredAcc - lastFilteredAcc;
+
+  // init filterCoeff with sensor interval
   if (filterCoeff === null) {
     filterCoeff = Math.exp(-2.0 * Math.PI * e.interval / 2);
   }
 
-  const acc = scaleAcc * e.acceleration.x;
-  filteredAcc = filterCoeff * filteredAcc + (1 - filterCoeff) * acc;
-
-  if (filteredAcc < -2 && !kickLeft) {
-    playSound(0);
-    kickLeft = true;
-  } else if (filteredAcc > 2 && !kickRight) {
-    playSound(1);
-    kickRight = true;
+  // init lastDiffAcc
+  if (lastDiffAcc === null) {
+    lastDiffAcc = currentDiffAcc;
   }
-  
-  if (filteredAcc > 0 && kickLeft) {
-    kickLeft = false;
-  } else if (filteredAcc < 0 && kickRight) {
-    kickRight = false;
-  }
-  
-  accMin = Math.min(accMin, filteredAcc);
-  accMax = Math.max(accMax, filteredAcc);
 
-  setBiBar(accBar, filteredAcc / 20);
-  setNumber(accNumber, filteredAcc);
+  if (currentFilteredAcc < 0 && lastDiffAcc < 0 && currentDiffAcc >= 0) {
+    // negative/left kick
+    leftEdge = filterCoeff;
+
+    const threshold = Math.min(-defaultThreshold, -0.5 * rightEdge);
+    if (currentFilteredAcc < threshold) {
+      playSound(0);
+    }
+  } else if (currentFilteredAcc >= 0 && lastDiffAcc >= 0 && currentDiffAcc < 0) {
+    // positive/right kick
+    rightEdge = filterCoeff;
+
+    const threshold = Math.max(defaultThreshold, -0.5 * leftEdge);
+    if (currentFilteredAcc >= threshold) {
+      playSound(1);
+    }
+  }
+
+  accMin = Math.min(accMin, currentFilteredAcc);
+  accMax = Math.max(accMax, currentFilteredAcc);
+
+  setBiBar(accBar, currentFilteredAcc / 20);
+  setNumber(accNumber, currentFilteredAcc);
   setBiBar(accMinBar, accMin / 20);
   setNumber(accMinNumber, accMin);
   setBiBar(accMaxBar, accMax / 20);
   setNumber(accMaxNumber, accMax);
+
+  lastFilteredAcc = currentFilteredAcc;
+  lastDiffAcc = currentDiffAcc;
 
   const rot = e.rotationRate.gamma;
   setBiBar(rotBar, rot / 360);
